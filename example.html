@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+		<title>Exit</title>
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<style type="text/css">
+
+			.bar {
+				fill: steelblue;
+				stroke: none;
+			}
+
+			.highlight {
+				fill: red;
+			}
+
+			.readme {
+				font-family: Helvetica Neue, Helvetica, Arial sans-serif;
+				max-width: 960px;
+			}
+
+			.readme .footer {
+				font-size: 12px;
+				color: gray;
+			}
+
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Define our random-number generator function
+			var _id_ = 0;
+			function generate() {
+				return {
+					index: _id_++,
+					value: 1000 * Math.random()
+				};
+			}
+
+			//Generate random data to use for the chart
+			var data = d3.range(100).map(generate);
+
+
+
+			//Set variables for desired size of chart
+			var w = 900,
+				h = 100,
+				bw = 9;
+
+
+
+			//Define a scale for y axis values
+			var yScale = d3.scaleLinear()
+								 .domain([0, d3.max(data, function(d) { return d.value; })])
+								 .range([0, 100]);
+
+
+
+			//Define a key function to uniquely identify data values
+			var key = function(d) {
+				return d.index;
+			};
+
+
+
+			//Select the <body> and create a new SVG element
+			var svg = d3.select("body").append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+
+
+			//Create a series of 'rect' elements within the SVG
+			svg.selectAll("rect.bar")
+				.data(data, function(d) {
+					return d.index;				// <-- Reference key function within data join
+				})
+				.enter()
+				.append("rect")
+				.attr("class", "bar")
+				.attr("x", function(d, i) {
+					return i * bw;
+				})
+				.attr("width", bw - 1)
+				.attr("y", function(d) {
+					return h - yScale(d.value);
+				})
+				.attr("height", function(d) {
+					return yScale(d.value);
+				})
+				.on("mouseover", function(d) {
+					d3.select(this).classed("highlight", true);
+				})
+				.on("mouseout", function(d) {
+					d3.select(this).classed("highlight", false);
+				});
+
+
+
+			//Define a new function that updates all data
+			function update() {
+
+				data.shift();
+				data.push(generate());
+
+			    //Re-select bars
+			    var bars = svg.selectAll("rect.bar")
+			        .data(data, key);				// <-- …while using key function!
+
+				//Add a new rect for the incoming data (one new value)
+				bars.enter()
+					.append("rect")
+					.attr("class", "bar")
+					.attr("x", w)
+					.attr("width", bw - 1)
+					.attr("y", function(d) {
+						return h - yScale(d.value);
+					})
+					.attr("height", function(d) {
+						return yScale(d.value);
+					})
+					.on("mouseover", function(d) {
+						d3.select(this).classed("highlight", true);
+					})
+					.on("mouseout", function(d) {
+						d3.select(this).classed("highlight", false);
+					});
+
+				//Re-position bars along x-axis with animation
+				//'bars' now contains both the enter and update sets
+				bars.transition()
+					.duration(500)
+					.attr("x", function(d, i) {
+						return i * bw;
+					});
+
+				//Re-position and then remove exiting data
+				bars.exit()
+					.transition()
+					.duration(500)
+					.attr("x", -bw)		//Move past the left edge of the SVG frame
+					.remove();   		//Delete this element from the DOM forever
+
+			}
+
+			//Execute this update function every two seconds
+			d3.interval(update, 2000);
+
+
+
+		</script>
+
+
+
+		<div class="readme">
+
+			<h3>Dynamic Bar Chart with D3</h3>
+			<p>This example will lead you step-by-step to build an animated bar chart with dynamic data.
+			For each step, you should view source: each new piece of code will be annotated with a comment.</p>
+
+			<ul>
+				<li><a href="00-dom.html">00-dom.html</a> &mdash; Simple elements in the DOM</li>
+				<li><a href="01-svg.html">01-svg.html</a> &mdash; Simple demo of SVG elements</li>
+				<li><a href="02-page-template.html">02-page-template.html</a> &mdash; An empty page great for testing D3 code right in the console</li>
+				<li><a href="03-data-simple.html">03-data-simple.html</a> &mdash; Data types and generating random values</li>
+				<li><a href="04-data-from-csv.html">04-data-from-csv.html</a> &mdash; Loading data from CSV and JSON files</li>
+				<li><a href="05-create-bars.html">05-create-bars.html</a> &mdash; Creating SVG elements from data!</li>
+				<li><a href="06-add-scale.html">06-add-scale.html</a> &mdash; Adding a scale for data flexibility</li>
+				<li><a href="07-add-hover.html">07-add-hover.html</a> &mdash; Adding mouse interactivity</li>
+				<li><a href="08-transition-color.html">08-transition-color.html</a> &mdash; An arbitrary color transition</li>
+				<li><a href="09-data-update.html">09-data-update.html</a> &mdash; Updating the data set (without a transition)</li>
+				<li><a href="10-data-transition.html">10-data-transition.html</a> &mdash; Transitioning bars to new values</li>
+				<li><a href="11-data-transition-with-key.html">11-data-transition-with-key.html</a> &mdash; Using a key with a data join</li>
+				<li><a href="12-exit.html">12-exit.html</a> &mdash; Transitioning bars and removing outgoing elements</li>
+			</ul>
+
+			<p class="footer">Code samples developed for the &ldquo;Introduction to Data Visualization on the Web with D3.js&rdquo; tutorial at VisWeek 2012 by organizers J&eacute;r&ocirc;me Cukier, Jeff Heer, and Scott Murray.</p>
+			<p class="footer">Code samples updated to d3v4 by Sean McKenna.</p>
+		</div>
+
+
+
+	</body>
+</html>
